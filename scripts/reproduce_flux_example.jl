@@ -8,9 +8,12 @@ using Optimisers
 using Zygote
 using AbstractGPs
 
+rng = Random.default_rng()
+plots_dir = "plots"
+isdir(plots_dir) || mkdir(plots_dir)
+
 # Create toy data as in 
 # https://juliagaussianprocesses.github.io/AbstractGPs.jl/dev/examples/2-deep-kernel-learning/
-rng = Random.default_rng()
 xmin, xmax = (-3, 3)
 N = 150
 noise_std = 0.01
@@ -79,8 +82,8 @@ make_encoder(model, ps, st) = begin
 end
 encode = make_encoder(model, ps, st)
 test_opt_p_fx = opt_p_fx(encode(test_xs))
-
-scatter(
+py = marginals(test_opt_p_fx)
+posterior_plt = scatter(
     x_train,
     y_train;
     xlabel="x",
@@ -88,5 +91,5 @@ scatter(
     title="posterior (optimized parameters)",
     label="Train Data",
 )
-py = marginals(test_opt_p_fx)
-plot!(test_xs[:], mean.(py), ribbon=2*std.(py), label="Posterior")
+plot!(posterior_plt, test_xs[:], mean.(py), ribbon=2*std.(py), label="Posterior")
+savefig(posterior_plt, joinpath(plots_dir, "repro_flux_example.png"))
